@@ -1,0 +1,251 @@
+---
+title: "Reticulate Overhead"
+author: "Doris Amoakohene"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+https://github.com/rstudio/cheatsheets/blob/main/reticulate.pdf
+
+
+
+```{r}
+library(reticulate)
+library(atime)
+
+write.colors <- c(
+  "copy data" = "#D6604D",
+  "without copying" = "#BF812D"
+)
+
+
+seconds.limit <- 10
+
+atime.py_run_string <- atime::atime(
+  N = 10^seq(1,7),
+  setup = {
+    library(reticulate)
+    py <- import_builtins()  # Initialize the Python environment
+    set.seed(1)
+  },
+  seconds.limit = seconds.limit,
+  "copy data" = {
+    df <- data.frame(x = rnorm(N), y = rnorm(N))
+    py$df <- df
+    py_run_string("b = df['x'] + df['y']")
+  },
+  "without copying" = {
+    py_run_string("a = 1 + 1")
+  }
+)
+
+# Print results
+print(atime.py_run_string )
+
+```
+
+
+
+
+```{r,warning=FALSE,message=FALSE}
+refs.py_run_string  <- atime::references_best(atime.py_run_string )
+
+png("refs.py_run_string.png")
+plot(refs.py_run_string )+
+  labs(title = "refs.py_run_string ")
+dev.off()
+
+plot(refs.py_run_string )
+png()
+print(refs.py_run_string )
+ggsave("refs.py_run_string ", refs.py_run_string , width = 10, height = 6, units = "in", dpi = 300)
+dev.off()
+
+refs.py_run_string 
+plot(refs.py_run_string )
+```
+
+
+```{r,warning=FALSE,message=FALSE}
+pred.py_run_string <- predict(refs.py_run_string )
+
+png("pred.py_run_string .png")
+plot(pred.py_run_string )+
+  labs(title = "pred.py_run_string ")
+dev.off()
+
+
+plot(pred.py_run_string )
+```
+
+
+```{r}
+gg.py_run_string  <- plot(pred.py_run_string ) +
+  theme(text = element_text(size = 15)) +
+  ggtitle(sprintf("overhead of running python code from \nreticulate in R using py_run_string", n.rows)) +
+  scale_x_log10("N ") +
+  scale_y_log10("Computation time (seconds)\nmedian line, min/max band\nover 10 timings") +
+  facet_null() +
+  scale_fill_manual(values = write.colors) +
+  scale_color_manual(values = write.colors)
+```
+
+
+```{r}
+plot(pred.py_run_string )
+
+png("gg.py_run_string ")
+plot(gg.py_run_string )+
+  labs(title = "gg.py_run_string ")
+dev.off()
+
+print(gg.py_run_string )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+write.colors <- c(
+  "copy data" = "#D6604D",
+  "without copying" = "#BF812D"
+)
+
+n.rows <- 100
+seconds.limit <- 10
+atime.write.vary.cols <- atime::atime(
+  N = as.integer(10^seq(2, 10, by = 0.2)),
+  setup = {
+    set.seed(1)
+    ...
+  },
+  seconds.limit = seconds.limit,
+  "copy data" = {
+    ...
+  },
+  "without copying" = {
+  ...  
+  }
+)
+```
+
+
+
+
+
+
+
+```{r}
+# Load reticulate package
+library(reticulate)
+library(microbenchmark)
+
+# Function to run py_run_string without copying anything
+py_run_nothing <- function() {
+  py_run_string("a = 1 + 1")
+}
+
+# Function to run py_run_string and copy a data frame
+py_run_copy <- function(N) {
+  df <- data.frame(x = rnorm(N), y = rnorm(N))
+  py$df <- df
+  py_run_string("b = df['x'] + df['y']")
+}
+
+# Define sizes
+sizes <- c(100, 1000, 10000, 100000)
+
+# Benchmark without copying
+benchmark_nothing <- microbenchmark(
+  py_run_nothing(),
+  times = 10
+)
+
+# Benchmark with copying for different sizes
+benchmark_copy <- lapply(sizes, function(N) {
+  microbenchmark(
+    py_run_copy(N),
+    times = 10
+  )
+})
+
+# Print results
+print("Benchmark without copying:")
+print(benchmark_nothing)
+
+print("Benchmark with copying:")
+names(benchmark_copy) <- paste("N =", sizes)
+print(benchmark_copy)
+
+```
+
+
+```{r}
+# Load reticulate package
+library(reticulate)
+library(atime)
+
+# Function to run py_run_string without copying anything
+py_run_nothing <- function() {
+  py_run_string("a = 1 + 1")
+}
+
+# Function to run py_run_string and copy a data frame
+py_run_copy <- function(N) {
+  df <- data.frame(x = rnorm(N), y = rnorm(N))
+  py$df <- df
+  py_run_string("b = df['x'] + df['y']")
+}
+
+# Define sizes
+sizes <- c(100, 1000, 10000, 100000)
+
+# Benchmark without copying
+benchmark_nothing <- atime::atime(
+  py_run_nothing(),
+  times = 10
+)
+
+# Benchmark with copying for different sizes
+benchmark_copy <- lapply(sizes, function(N) {
+  atime::atime(
+    py_run_copy(N),
+    times = 10
+  )
+})
+
+# Print results
+print("Benchmark without copying:")
+print(benchmark_nothing)
+
+print("Benchmark with copying:")
+names(benchmark_copy) <- paste("N =", sizes)
+print(benchmark_copy)
+
+```
+
